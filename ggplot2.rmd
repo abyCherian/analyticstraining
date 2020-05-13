@@ -1,0 +1,418 @@
+---
+title: "Data Visualization in R with ggplot2"
+author: "Abilash Cherian"
+date: "5/5/2020"
+output:
+  html_document
+---
+
+```{r setup,include=FALSE}
+knitr::opts_chunk$set(error =TRUE)
+```
+
+# Why use R and ggplot2 #
+
+- Reproducibility
+
+- Create many variations and iterations without having to start from scatch
+
+**There are several plotting systems available in R**
+
+- Base graphics
+
+- lattice
+
+- plolty
+
+- ggplot2
+
+Many users happily use base graphics and lattice, and it is possible to create excellent visualizations.
+
+Personally, I find ggplot2 more intuitive. There are more libraries that helps make specialized plots in R
+
+# Resources to learn #
+
++ *ggplot2:Elegant graphics for Data Analysis* by Hadley Wickham
++ *R Graphics Cookbook* by Winston Chang
++ Online documentaion: https://www.rdocumentation.org/packages/ggplot2/versions/3.3.0
+
+
+```{r eval=FALSE}
+# Let's start with Installing the below packages
+install.packages(c('ggplot','dplyr','gapminder'))
+```
+
+
+```{r eval=FALSE}
+#  Load the packages
+library(ggplot2)
+library(dplyr)
+library(gapminder)
+```
+
+# Understanding ggplot2's Grammer of Graphics
+
++ Articulated by Leland Wilkinson: fundamentals features that make up statistical graphics.
+
++ Hadley Wicham: build the layered grammar of graphics in ggplot2
+
+###  Most fundamental component of Data Visualization is Data
+
+```{r}
+head(mtcars)
+
+```
+
++ **ggplot2 expects data to be stored in a data frame with coloums as variables**
++ **Next is Mapping: Aesthestics**  
+
+      - X = weight of the Vehicle  
+      - Y = Miles per Gallon  
+      
++ **Geometrics Objects ('Geoms')**
+
+      - Visual elements you see on the plot  
+      - Points, lines, shapes etc.  
+
+```{r echo=FALSE,fig.height=3}
+library(ggplot2)
+ggplot(mtcars,aes(wt,mpg))+
+  geom_point()
+```
+
+      
++ **Statistical Transformations ('STATS')**  
+
+      - Transforms data, usually to summarize it
+      - Fit data to smoother
+      
+```{r, echo=FALSE,fig.height=3,warning=FALSE}
+library(ggplot2)
+ggplot(mtcars,aes(wt,mpg))+
+  geom_point()+
+  stat_smooth(method = 'loess',
+              formula = 'y ~ x')
+```
+
++ **Facets**
+
+    - Breaks up data into subsets to visualize as small multiples   
+
++ **Scales**
+
+    - Controls how data values are mapped to aesthestics
+    - Color Scale
+    - Long transform axis
+    
+
++ **Coordinate Systems ("COORD')**
+
+    - controls how data coordinates are mapped to the visual plane of the graphic
+    
+### Summarize gglot2's grammer of graphics
+
+1. Data
+2. Aesthetics 
+3. Geoms
+4. Stats
+5. Facets
+6. Scales
+7. Coordinates
+
+# Data Manipulation
+
+#### Using Pipe Operator makes easy data manipulation **%>%**
+
+```{r, eval=TRUE}
+# Load the packages
+library(gapminder)
+library(dplyr)
+
+```
+
+
+```{r}
+#  summarizing the median population
+
+gapminder %>% 
+  filter(year == 2007) %>% 
+  group_by(continent) %>% 
+  summarise(medpop = median(pop)) %>% 
+  head()
+```
+
+### Let's plot the graphics
+
+```{r}
+
+# First filter the data
+
+gap_07 <- gapminder %>% 
+  filter(year == 2007)
+
+#  lets check the first 10 rows of the data
+
+head(gap_07)
+```
+
+### Plotting using geom_point()
+
+```{r}
+ggplot(gap_07,aes(x = gdpPercap, y = lifeExp))+
+  geom_point()
+```
+
+### Plotting using geom_bar()
+
+```{r}
+ggplot(gap_07,aes(x = continent))+
+  geom_bar()
+```
+
+```{r}
+# Plotting the median of the population
+
+gap_med <- gapminder %>% 
+  filter(year == 2007) %>% 
+  group_by(continent) %>% 
+  summarise(medpop = median(pop))
+
+ggplot(gap_med,aes(x = continent, y = medpop))+
+  geom_bar(stat = 'identity')
+```
+
+
+#### Let's Save the plot using ggsave()
+
+```{r,error=FALSE}
+# Create an object 'p'
+
+p <- ggplot(gap_07,aes(x = continent,y = gdpPercap))
+
+p + geom_line() +
+  geom_point() +
+  ggsave('ggplot2.image.png',height = 6,width = 8)
+
+```
+
+# Viewing Data Distributions
+
+```{r}
+# Applying geom_histogram()
+ggplot(gap_07,aes(x = gdpPercap))+
+  geom_histogram(bins = 15)
+```
+
+```{r}
+# Using geom_density()
+ggplot(gap_07,aes(x = gdpPercap))+
+  geom_density()
+```
+```{r}
+# using boxplot and jitter point
+ggplot(gap_07,aes(x = continent, y = lifeExp))+
+  geom_boxplot()+
+  geom_jitter(width = 0.5,alpha = 0.5)
+```
+
+# Additional visual elements: Color, Shape & Size 
+ 
+```{r}
+
+# Adding color and size
+
+ggplot(gap_07, aes(x = gdpPercap, y = lifeExp,
+                   color = continent, size = pop))+
+  geom_point()
+
+```
+
+```{r}
+gap_pop <- gapminder %>% 
+  group_by(continent, year) %>% 
+  summarise(pop = mean(pop))
+
+ggplot(gap_pop,aes(x = year, y = pop, color = continent))+
+  geom_line()
+```
+
+## Adding Facets (Small Multiples)
+ 
+```{r}
+gap_life <- gapminder %>% 
+  group_by(continent, year) %>% 
+  summarise(lifeExp = mean(lifeExp))
+
+# adding facet_grid
+
+ggplot(gap_life,aes(x = year, y = lifeExp))+
+  geom_line()+
+  facet_grid(continent ~ .)
+
+#  Adding facet_wrap
+
+ggplot(gap_life,aes(x = year, y = lifeExp))+
+  geom_line()+
+  facet_wrap(~ continent)
+```
+
+## Smoothing Functions
+
+```{r,warning = FALSE}
+ggplot(gap_07, aes(x = gdpPercap, y = lifeExp))+
+  geom_point()+
+  geom_smooth(method = 'loess')
+
+# Let's add some more functionalities
+
+ggplot(gap_07, aes(x = gdpPercap, y = lifeExp))+
+  geom_point()+
+  facet_wrap(~ continent) +
+  geom_smooth(aes(color = continent))
+
+
+
+```
+
+
+# Customizing your Plots
+
+## Axis Scales
+
+```{r}
+ggplot(gap_07, aes(x = gdpPercap, y = lifeExp))+
+  geom_point()+
+  scale_x_continuous(trans = 'log10')
+
+# Or you can use scale_x_log10() function
+
+ggplot(gap_07, aes(x = gdpPercap, y = lifeExp))+
+  geom_point()+
+  scale_x_log10()+
+  # Setting Y axis limits
+  scale_y_continuous(limits = c(0,95))
+
+```
+
+## Changing Color Scales
+
+```{r}
+ggplot(gap_07,aes(x = gdpPercap, y = lifeExp,
+                  color = continent))+
+  geom_point()+
+  scale_x_log10()+
+  scale_color_brewer(palette = 'Dark2')
+
+#  changing color using geom_point()
+
+ggplot(gap_07,aes(x = gdpPercap, y = lifeExp))+
+  geom_point(color = 'red')
+
+```
+
+## Themes 
+
+**Theme Functions**
+
+- Elements
+- Elements functions
+- theme()
+- Complete themes
+
+```{r}
+ggplot(gap_07,aes(x = gdpPercap, y = lifeExp,
+                  color = continent))+
+  geom_point()+
+  scale_x_log10()+
+  theme_bw()
+
+# Using dark
+
+ggplot(gap_07,aes(x = gdpPercap, y = lifeExp,
+                  color = continent))+
+  geom_point()+
+  scale_x_log10()+
+  theme_dark()
+
+#  Using Void function
+
+ggplot(gap_07,aes(x = gdpPercap, y = lifeExp,
+                  color = continent))+
+  geom_point()+
+  scale_x_log10()+
+  theme_void()
+```
+
+
+You can also use `ggthemes` to get amazing themes for your project
+
+```{r}
+install.packages('ggthemes')
+
+# Load the library(ggthemes)
+
+library(ggthemes)
+```
+
+```{r}
+ggplot(gap_07,aes(x = gdpPercap, y = lifeExp,
+                  color = continent))+
+  geom_point()+
+  scale_x_log10()+
+  theme_tufte()
+
+# Using Solarized theme
+
+ggplot(gap_07,aes(x = gdpPercap, y = lifeExp,
+                  color = continent))+
+  geom_point()+
+  scale_x_log10()+
+  theme_solarized()+
+  scale_colour_solarized(accent = 'blue')
+
+# Finally you can use base R theme functions
+
+ggplot(gap_07,aes(x = gdpPercap, y = lifeExp,
+                  color = continent))+
+  geom_point()+
+  theme_base()
+
+```
+
+# Customizing Titles, Axis, Labels and Legends  
+
+
+Know more at https://ggplot2.tidyverse.org/reference/ggtheme.html
+
+```{r}
+ggplot(gap_07,aes(x = gdpPercap, y = lifeExp,
+                  color = continent))+
+  geom_point(size = 2)+
+  theme_light()+
+  theme(legend.position = 'bottom',
+        legend.key = element_blank(),
+        axis.text = element_text(size = 12))
+
+# You can give No Legend
+
+ggplot(gap_07,aes(x = gdpPercap, y = lifeExp,
+                  color = continent))+
+  geom_point(size = 2)+
+  theme_light()+
+  theme(legend.position = 'none')
+
+# Adding New Labels
+ggplot(gap_07,aes(x = gdpPercap, y = lifeExp,
+                  color = continent))+
+  geom_point(size = 2)+
+  theme_light()+
+  labs(x = 'Per Capita GDP',
+       y = 'Life Expectancy',
+       title = '2007 Life Expectancy and GDP',
+       color = 'Continent')
+
+
+```
+
+
+
