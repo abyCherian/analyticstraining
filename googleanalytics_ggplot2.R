@@ -1,7 +1,13 @@
+
+# installing various packages ---------------------------------------------
+
+install.packages(c('googleAnalyticsR','googleAuthR','ggplot2','patchwork'))
+
+
 library(googleAnalyticsR) #Analytics package
 library(googleAuthR)  #Access Google Oauth
 library(ggplot2) # Load the ggplot2 package
-library(patchwork) # Load the ggplot2 package
+library(patchwork) # Load the patchwork package
 
 
 # Load the Google Analytics and Google Auth libraries 
