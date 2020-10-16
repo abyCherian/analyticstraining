@@ -36,7 +36,6 @@ b = data %>%
   geom_area() +
   scale_fill_viridis(discrete = T)
 
-b + plot_ly(tooltip = 'text')
 
 
 # plotly ------------------------------------------------------------------
