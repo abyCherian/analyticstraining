@@ -46,7 +46,8 @@ ggplotly(d2,tooltip = 'text')
 
 
 # Setup an API Key --------------------------------------------------------
-
+# Create an plotly account
+#  Visit https://chart-studio.plotly.com and generate an API key
 
 
 Sys.setenv('plotly_username' = 'aby123')
